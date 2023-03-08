@@ -1,0 +1,9 @@
+---
+  - name: Playbook to reboot hosts sequentially in a specified order
+    hosts: "{{ match_host }}"
+    order: inventory
+    serial: 1
+    gather_facts: true
+    tasks:
+      - name: Reboot hosts sequentially in a specified order
+        win_reboot:

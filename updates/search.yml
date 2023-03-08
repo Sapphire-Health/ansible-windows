@@ -1,0 +1,15 @@
+---
+  - name: Playbook to search for Windows updates
+    hosts: "{{ match_host }}"
+    gather_facts: true
+    tasks:
+      - name: Search for Windows updates
+        win_updates:
+          category_names: "{{ category_names }}"
+          server_selection: "{{ server_selection }}"
+          state: searched
+          log_path: C:\Windows\Temp\ansible_wu.txt
+        register: result
+      - name: Show result
+        debug:
+          msg: "{{ result }}"
