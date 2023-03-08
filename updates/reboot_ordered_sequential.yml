@@ -7,3 +7,4 @@
     tasks:
       - name: Reboot hosts sequentially in a specified order
         win_reboot:
+          reboot_timeout: "{{ reboot_timeout | default('1200') }}"
