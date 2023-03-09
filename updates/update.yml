@@ -9,6 +9,7 @@
             - Drivers
           server_selection: "{{ server_selection }}"
           state: installed
+          reboot: false
           log_path: C:\Windows\Temp\ansible_wu_drivers.txt
         register: driver_result
         ignore_unreachable: true
