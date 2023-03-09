@@ -4,7 +4,7 @@
     gather_facts: true
     tasks:
       - name: Search for Windows updates
-        win_updates:
+        ansible.windows.win_updates:
           category_names: "{{ category_names }}"
           server_selection: "{{ server_selection }}"
           state: searched

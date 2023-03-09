@@ -3,8 +3,22 @@
     hosts: "{{ match_host }}"
     gather_facts: true
     tasks:
+      - name: Install Windows updates drivers
+        ansible.windows.win_updates:
+          category_names:
+            - Drivers
+          server_selection: "{{ server_selection }}"
+          state: installed
+          log_path: C:\Windows\Temp\ansible_wu_drivers.txt
+        register: driver_result
+        ignore_unreachable: true
+        when: '"Drivers" in category_names'
+      - name: Show driver result
+        debug:
+          msg: "{{ driver_result }}"
+        when: driver_result is defined
       - name: Install Windows updates
-        win_updates:
+        ansible.windows.win_updates:
           category_names: "{{ category_names }}"
           server_selection: "{{ server_selection }}"
           state: installed
