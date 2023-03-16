@@ -1,0 +1,14 @@
+---
+  - name: Deploy package
+    hosts: "{{ match_host }}"
+    tasks:
+      - name: Download the package
+        win_get_url:
+          url: "{{ package_url }}{{ package_name }}"
+          dest: C:\Windows\Temp\
+      - name: Install/Update the package
+        win_command: "C:\\Windows\\Temp\\{{ package_name }} {{ install_params }}"
+      - name: Delete the package
+        win_file:
+          path: "C:\\Windows\\Temp\\{{ package_name }}"
+          state: absent
