@@ -3,6 +3,9 @@
     hosts: "{{ match_host }}"
     gather_facts: true
     tasks:
+      - name: Check version of installed ansible.windows collection
+        ansible.builtin.debug:
+          msg: "ansible.windows version {{ lookup('community.general.collection_version', 'ansible.windows') }}"
       - name: Search for Windows updates
         ansible.windows.win_updates:
           category_names: "{{ category_names }}"

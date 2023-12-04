@@ -35,6 +35,11 @@ reboot: false
 EOF
 ```
 
+### Install require collection
+```
+ansible-galaxy collection install -r collections/requirements.yml
+```
+
 ### Get a kerberos ticket
 ```
 kinit username@DOMAIN.TLD
