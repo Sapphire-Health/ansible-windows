@@ -26,9 +26,13 @@
           category_names: "{{ category_names }}"
           server_selection: "{{ server_selection }}"
           state: installed
-          reboot: "{{ reboot }}"
+          reboot: false
           log_path: C:\Windows\Temp\ansible_wu.txt
         register: result
       - name: Show result
         debug:
           msg: "{{ result }}"
+      - name: Reboot hosts sequentially in a specified order
+        ansible.windows.win_reboot:
+          reboot_timeout: "{{ reboot_timeout | default('1200') }}"
+        when: reboot is defined and reboot == true
