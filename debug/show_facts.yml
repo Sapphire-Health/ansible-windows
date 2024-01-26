@@ -1,0 +1,8 @@
+---
+  - name: Playbook to search for Windows updates
+    hosts: "{{ match_host }}"
+    gather_facts: true
+    tasks:
+      - name: Check version of installed ansible.windows collection
+        ansible.builtin.debug:
+          msg: "{{ansible_facts}}"
