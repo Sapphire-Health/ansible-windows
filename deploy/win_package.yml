@@ -1,0 +1,18 @@
+---
+  - name: Deploy package
+    hosts: "{{ match_host }}"
+    tasks:
+      - name: Download the package
+        win_get_url:
+          url: "{{ package_url }}{{ package_name }}"
+          dest: C:\Windows\Temp\
+      #https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_package_module.html
+      - name: Install/Update the package
+        ansible.windows.win_package:
+          path: "C:\\Windows\\Temp\\{{ package_name }}"
+          state: present
+          arguments: "{{ arguments | default(omit) }}"
+      - name: Delete the package
+        win_file:
+          path: "C:\\Windows\\Temp\\{{ package_name }}"
+          state: absent
