@@ -23,7 +23,7 @@
             community.crypto.openssl_csr:
               path: "/tmp/{{ working_directory }}/{{ computername }}.csr"
               privatekey_path: "/tmp/{{ working_directory }}/{{ computername }}.key"
-              common_name: "{{ computername }}"
+              common_name: "{{ username }}"
               organizational_unit_name: "{{ computername }}"
               key_usage:
                 - digitalSignature

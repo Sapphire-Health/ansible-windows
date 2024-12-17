@@ -49,3 +49,8 @@ kinit username@DOMAIN.TLD
 ```
 ansible-playbook -i hosts.yml -e @vars.yml updates/search.yml
 ```
+
+### Request a Citrix Authentication Certificate
+```
+ansible-playbook -i hosts.yml --limit=epic-dc1-ica03.lcmchealth.org -e username=lyas.spiehler -e computername=vm-lspiehler -e ca=EPIC-DC1-ICA03.lcmchealth.org\\DC1-ICA03-FAS-CA -e template=CCExamRoom -e email_recipient=lyas.spiehler@lcmchealth.org certificate/request.yml
+```
