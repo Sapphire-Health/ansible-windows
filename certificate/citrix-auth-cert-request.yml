@@ -1,0 +1,113 @@
+---
+  - name: Playbook to reboot hosts sequentially in a specified order
+    hosts: all
+    gather_facts: true
+    tasks:
+      - name: generate a random name for a working directory
+        ansible.builtin.set_fact:
+          working_directory: "ansible_cert_{{computername}}_{{ lookup('ansible.builtin.password', '/dev/null', length=8, chars=['ascii_letters' ] ) }}"
+        delegate_to: localhost
+      - name: create working_directory
+        ansible.builtin.file:
+          path: "/tmp/{{ working_directory }}"
+          state: directory
+        delegate_to: localhost
+      - block:
+          - name: Generate an OpenSSL private key with a different size (2048 bits)
+            community.crypto.openssl_privatekey:
+              path: "/tmp/{{ working_directory }}/{{ computername }}.key"
+              type: "{{ key_type | default('RSA') }}"
+              size: "{{ key_size | default(omit) }}"
+            delegate_to: localhost
+          - name: Generate an OpenSSL CSR with subjectAltName extension with dynamic list
+            community.crypto.openssl_csr:
+              path: "/tmp/{{ working_directory }}/{{ computername }}.csr"
+              privatekey_path: "/tmp/{{ working_directory }}/{{ computername }}.key"
+              common_name: "{{ computername }}"
+              organizational_unit_name: "{{ computername }}"
+              key_usage:
+                - digitalSignature
+              extended_key_usage:
+                - clientAuth
+              #subject_alt_name: "{{ item.value | map('regex_replace', '^', 'DNS:') | list }}"
+            register: newcsr
+            delegate_to: localhost
+          - name: Show CSR
+            ansible.builtin.debug:
+              msg: "{{ newcsr }}"
+            delegate_to: localhost
+          - block:
+              - name: Create temporary build directory
+                ansible.windows.win_tempfile:
+                  state: directory
+                  suffix: build
+                register: win_temp_dir
+              - name: Show temporary directory
+                ansible.builtin.debug:
+                  msg: "{{ win_temp_dir }}"
+              - name: Copy the CSR
+                ansible.windows.win_copy:
+                  src: "/tmp/{{ working_directory }}/{{ computername }}.csr"
+                  dest: "{{ win_temp_dir.path }}"
+              - name: Request the certificate
+                ansible.windows.win_shell: |
+                  certreq -submit -q -config "{{ ca }}" -attrib "CertificateTemplate:{{ template }}" "{{ win_temp_dir.path }}\{{ computername }}.csr" "{{ win_temp_dir.path }}\{{ computername }}.crt"
+                # args:
+                #   executable: cmd
+                register: request_output
+              - name: Show temporary directory
+                ansible.builtin.debug:
+                  msg: "{{ request_output }}"
+              - name: Copy the Certificate
+                ansible.builtin.fetch:
+                  src: "{{ win_temp_dir.path }}/{{ computername }}.crt"
+                  dest: "/tmp/{{ working_directory }}/"
+                  flat: true
+              - name: Generate a random password
+                ansible.builtin.set_fact:
+                  random_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=16, chars=['ascii_letters', 'digits' ] ) }}"
+                  #random_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=16, chars=['ascii_letters', 'digits', 'punctuation'] ) }}"
+                delegate_to: localhost
+              - name: Generate PKCS#12 file
+                community.crypto.openssl_pkcs12:
+                  action: export
+                  path: "/tmp/{{ working_directory }}/{{ computername }}.pfx"
+                  friendly_name: "{{ computername }}"
+                  privatekey_path: "/tmp/{{ working_directory }}/{{ computername }}.key"
+                  certificate_path: "/tmp/{{ working_directory }}/{{ computername }}.crt"
+                  #other_certificates_parse_all: true
+                  passphrase: '{{ random_password }}'
+                  #other_certificates:
+                    #- /opt/certs/ca_bundle.pem
+                      # Since we set other_certificates_parse_all to true, all
+                      # certificates in the CA bundle are included and not just
+                      # the first one.
+                    #- /opt/certs/intermediate.pem
+                      # In case this file has multiple certificates in it,
+                      # all will be included as well.
+                  state: present
+                delegate_to: localhost
+              - name: Sending an e-mail with certificate
+                community.general.mail:
+                  host: smtp.lcmchealth.org
+                  port: 25
+                  from: ansible@lcmchealth.org (Ansible)
+                  to: "{{ email_recipient }}"
+                  subject: Ansible Generated Certificate
+                  body: "The password for the attached certificate is {{ random_password}}"
+                  attach: "/tmp/{{ working_directory }}/{{ computername }}.pfx"
+                delegate_to: localhost
+            always:
+              - name: Remove directory structure
+                ansible.windows.win_file:
+                  path: "{{ win_temp_dir.path }}"
+                  state: absent
+        always:
+          - name: remove working directory
+            ansible.builtin.file:
+              path: "/tmp/{{ working_directory }}"
+              state: absent
+            delegate_to: localhost
+          # - name: Show temporary directory
+          #   ansible.builtin.debug:
+          #     msg: "/tmp/{{ working_directory }}"
