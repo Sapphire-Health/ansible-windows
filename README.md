@@ -59,3 +59,11 @@ export AZURE_TENANT=
 
 ansible-playbook -i hosts.yml --limit=epic-dc1-ica03.lcmchealth.org -e username=lyas.spiehler -e computername=vm-lspiehler -e ca=EPIC-DC1-ICA03.lcmchealth.org\\DC1-ICA03-FAS-CA -e template=CCExamRoom -e resource_group=LCMC-Shared -e storage_account_name=lcmcsharedgeneraleast01 -e container=certs certificate/citrix-auth-cert-request.yml
 ```
+
+### See fix for Azure issues
+https://github.com/ansible/ansible/issues/38894
+1. su -
+2. cd /var/lib/awx/venv/awx/bin
+3. source activate
+4. pip install ansible[azure] --upgrade --force
+5. deactivate

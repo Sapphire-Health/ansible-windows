@@ -114,8 +114,6 @@
                   content_type: 'application/x-pkcs12'
                 delegate_to: localhost
                 register: storage_account_upload
-                vars:
-                  ansible_python_interpreter: "{{ python | default(omit) }}"
             always:
               - name: Remove directory structure
                 ansible.windows.win_file:
