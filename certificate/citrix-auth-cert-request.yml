@@ -103,7 +103,7 @@
                   randomize_pfx: "{{ lookup('ansible.builtin.password', '/dev/null', length=32, chars=['ascii_letters' ] ) }}"
                 delegate_to: localhost
               - name: Create container foo and upload a file
-                azure_rm_storageblob:
+                azure.azcollection.azure_rm_storageblob:
                   auth_source: env
                   resource_group: "{{ resource_group }}"
                   storage_account_name: "{{ storage_account_name }}"
