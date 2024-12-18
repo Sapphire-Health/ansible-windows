@@ -52,5 +52,10 @@ ansible-playbook -i hosts.yml -e @vars.yml updates/search.yml
 
 ### Request a Citrix Authentication Certificate
 ```
-ansible-playbook -i hosts.yml --limit=epic-dc1-ica03.lcmchealth.org -e username=lyas.spiehler -e computername=vm-lspiehler -e ca=EPIC-DC1-ICA03.lcmchealth.org\\DC1-ICA03-FAS-CA -e template=CCExamRoom -e email_recipient=lyas.spiehler@lcmchealth.org certificate/request.yml
+export AZURE_SUBSCRIPTION_ID=
+export AZURE_CLIENT_ID=
+export AZURE_SECRET=
+export AZURE_TENANT=
+
+ansible-playbook -i hosts.yml --limit=epic-dc1-ica03.lcmchealth.org -e username=lyas.spiehler -e computername=vm-lspiehler -e ca=EPIC-DC1-ICA03.lcmchealth.org\\DC1-ICA03-FAS-CA -e template=CCExamRoom -e resource_group=LCMC-Shared -e storage_account_name=lcmcsharedgeneraleast01 -e container=certs certificate/citrix-auth-cert-request.yml
 ```

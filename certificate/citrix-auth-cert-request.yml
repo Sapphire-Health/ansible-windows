@@ -88,16 +88,32 @@
                       # all will be included as well.
                   state: present
                 delegate_to: localhost
-              - name: Sending an e-mail with certificate
-                community.general.mail:
-                  host: smtp.lcmchealth.org
-                  port: 25
-                  from: ansible@lcmchealth.org (Ansible)
-                  to: "{{ email_recipient }}"
-                  subject: Ansible Generated Certificate
-                  body: "The password for the attached certificate is {{ random_password}}"
-                  attach: "/tmp/{{ working_directory }}/{{ computername }}.pfx"
+              # - name: Sending an e-mail with certificate
+              #   community.general.mail:
+              #     host: smtp.lcmchealth.org
+              #     port: 25
+              #     from: ansible@lcmchealth.org (Ansible)
+              #     to: "{{ email_recipient }}"
+              #     subject: Ansible Generated Certificate
+              #     body: "The password for the attached certificate is {{ random_password}}"
+              #     attach: "/tmp/{{ working_directory }}/{{ computername }}.pfx"
+              #   delegate_to: localhost
+              - name: generate a random name for a working directory
+                ansible.builtin.set_fact:
+                  randomize_pfx: "{{ lookup('ansible.builtin.password', '/dev/null', length=32, chars=['ascii_letters' ] ) }}"
                 delegate_to: localhost
+              - name: Create container foo and upload a file
+                azure_rm_storageblob:
+                  auth_source: env
+                  resource_group: "{{ resource_group }}"
+                  storage_account_name: "{{ storage_account_name }}"
+                  container: "{{ container }}"
+                  blob: "{{ randomize_pfx }}.pfx"
+                  src: "/tmp/{{ working_directory }}/{{ computername }}.pfx"
+                  public_access: container
+                  content_type: 'application/x-pkcs12'
+                delegate_to: localhost
+                register: storage_account_upload
             always:
               - name: Remove directory structure
                 ansible.windows.win_file:
@@ -112,3 +128,7 @@
           # - name: Show temporary directory
           #   ansible.builtin.debug:
           #     msg: "/tmp/{{ working_directory }}"
+      - name: Certificate Data
+        ansible.builtin.debug:
+          msg: "Download the certificate at https://lcmcsharedgeneraleast01.blob.core.windows.net/certs/{{ randomize_pfx }}.pfx and use the password \"{{ random_password }}\" to decrypt it."
+        delegate_to: localhost

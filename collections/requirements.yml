@@ -3,3 +3,4 @@ collections:
     #version: "2.1.0"
   - name: community.general
   - name: community.crypto
+  - name: azure.azcollection
