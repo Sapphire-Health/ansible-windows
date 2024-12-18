@@ -29,6 +29,7 @@
                 - digitalSignature
               extended_key_usage:
                 - clientAuth
+              use_common_name_for_san: false
               #subject_alt_name: "{{ item.value | map('regex_replace', '^', 'DNS:') | list }}"
             register: newcsr
             delegate_to: localhost
