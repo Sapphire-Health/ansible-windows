@@ -1,0 +1,73 @@
+---
+  - name: Request Citrix Auth Certificate
+    hosts: localhost
+    gather_facts: true
+    tasks:
+      - name: generate a random name for a working directory
+        ansible.builtin.set_fact:
+          working_directory: "ansible_cert_{{computername}}_{{ lookup('ansible.builtin.password', '/dev/null', length=8, chars=['ascii_letters' ] ) }}"
+        delegate_to: localhost
+      - name: create working_directory
+        ansible.builtin.file:
+          path: "/tmp/{{ working_directory }}"
+          state: directory
+        delegate_to: localhost
+      - block:
+          - name: Generate an OpenSSL private key with a different size (2048 bits)
+            community.crypto.openssl_privatekey:
+              path: "/tmp/{{ working_directory }}/{{ computername }}.key"
+              type: "{{ key_type | default('RSA') }}"
+              size: "{{ key_size | default(omit) }}"
+            delegate_to: localhost
+          - name: generate a random name for a working directory
+            ansible.builtin.set_fact:
+              randomize_pfx: "{{ lookup('ansible.builtin.password', '/dev/null', length=32, chars=['ascii_letters' ] ) }}"
+            delegate_to: localhost
+          - name: Generate an OpenSSL CSR with subjectAltName extension with dynamic list
+            community.crypto.openssl_csr:
+              path: "/tmp/{{ working_directory }}/{{ randomize_pfx }}.csr"
+              privatekey_path: "/tmp/{{ working_directory }}/{{ computername }}.key"
+              common_name: "{{ username }}"
+              organizational_unit_name: "{{ computername }}"
+              key_usage:
+                - digitalSignature
+              extended_key_usage:
+                - clientAuth
+              use_common_name_for_san: false
+              #subject_alt_name: "{{ item.value | map('regex_replace', '^', 'DNS:') | list }}"
+            register: newcsr
+            delegate_to: localhost
+          - name: Show CSR
+            ansible.builtin.debug:
+              msg: "{{ newcsr }}"
+            delegate_to: localhost
+          - name: Create container foo and upload a file
+            azure.azcollection.azure_rm_storageblob:
+              auth_source: env
+              resource_group: "{{ resource_group }}"
+              storage_account_name: "{{ storage_account_name }}"
+              container: "{{ container }}"
+              blob: "{{ randomize_pfx }}.csr"
+              src: "/tmp/{{ working_directory }}/{{ randomize_pfx }}.csr"
+              public_access: container
+              content_type: 'application/x-pkcs10'
+            delegate_to: localhost
+            register: storage_account_upload
+          - name: Generate a random password
+            ansible.builtin.set_fact:
+              random_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=16, chars=['ascii_letters', 'digits' ] ) }}"
+              #random_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=16, chars=['ascii_letters', 'digits', 'punctuation'] ) }}"
+            delegate_to: localhost
+        always:
+          - name: remove working directory
+            ansible.builtin.file:
+              path: "/tmp/{{ working_directory }}"
+              state: absent
+            delegate_to: localhost
+          # - name: Show temporary directory
+          #   ansible.builtin.debug:
+          #     msg: "/tmp/{{ working_directory }}"
+      - name: Certificate Data
+        ansible.builtin.debug:
+          msg: "Download the certificate at https://lcmcsharedgeneraleast01.blob.core.windows.net/certs/{{ randomize_pfx }}.csr and use the password \"{{ random_password }}\" to decrypt it."
+        delegate_to: localhost
