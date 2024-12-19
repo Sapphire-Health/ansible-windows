@@ -1,5 +1,5 @@
 ---
-  - name: Playbook to reboot hosts sequentially in a specified order
+  - name: Request Citrix Auth Certificate
     hosts: all
     gather_facts: true
     tasks:
