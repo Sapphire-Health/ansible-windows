@@ -60,10 +60,11 @@ export AZURE_TENANT=
 ansible-playbook -i hosts.yml --limit=epic-dc1-ica03.lcmchealth.org -e username=lyas.spiehler -e computername=vm-lspiehler -e ca=EPIC-DC1-ICA03.lcmchealth.org\\DC1-ICA03-FAS-CA -e template=CCExamRoom -e resource_group=LCMC-Shared -e storage_account_name=lcmcsharedgeneraleast01 -e container=certs certificate/citrix-auth-cert-request.yml
 ```
 
-### See fix for Azure issues
-https://github.com/ansible/ansible/issues/38894
-1. su -
-2. cd /var/lib/awx/venv/awx/bin
-3. source activate
-4. pip install ansible[azure] --upgrade --force
-5. deactivate
+### Build a custom Ansible Automation Platform EE
+https://access.redhat.com/solutions/6984770
+https://www.redhat.com/en/blog/unlocking-efficiency-harnessing-the-capabilities-of-ansible-builder-3.0
+pip install ansible-builder
+podman login registry.redhat.io
+ansible-builder build --tag docker.io/lspiehler/azure-ee:latest
+podman login docker.io
+podman push docker.io/lspiehler/azure-ee:latest
