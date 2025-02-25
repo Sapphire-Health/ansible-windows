@@ -1,6 +1,6 @@
 ---
   - name: Playbook to install Windows updates
-    hosts: "{{ match_host }}"
+    hosts: all
     gather_facts: true
     tasks:
       #- name: Install Windows updates drivers

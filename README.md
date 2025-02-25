@@ -22,7 +22,6 @@ EOF
 
 ```
 cat << EOF > vars.yml
-match_host: ansibletest01.fqdn.tld
 category_names:
   - Security Updates
   - Critical Updates
@@ -47,7 +46,7 @@ kinit username@DOMAIN.TLD
 
 ### Run a playbook
 ```
-ansible-playbook -i hosts.yml -e @vars.yml updates/search.yml
+ansible-playbook -i hosts.yml --limit=myhost.mydomain -e @vars.yml updates/search.yml
 ```
 
 ### Request a Citrix Authentication Certificate

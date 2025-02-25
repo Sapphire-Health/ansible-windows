@@ -1,6 +1,6 @@
 ---
   - name: Playbook to update and reboot hosts sequentially in a specified order
-    hosts: "{{ match_host }}"
+    hosts: all
     order: inventory
     serial: 1
     gather_facts: true

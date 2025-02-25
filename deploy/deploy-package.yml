@@ -1,6 +1,6 @@
 ---
   - name: Deploy package
-    hosts: "{{ match_host }}"
+    hosts: all
     tasks:
       - name: Download the package
         win_get_url:

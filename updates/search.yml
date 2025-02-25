@@ -1,6 +1,6 @@
 ---
   - name: Playbook to search for Windows updates
-    hosts: "{{ match_host }}"
+    hosts: all
     gather_facts: true
     tasks:
       - name: Check version of installed ansible.windows collection
@@ -14,5 +14,5 @@
           log_path: C:\Windows\Temp\ansible_wu.txt
         register: result
       - name: Show result
-        debug:
+        ansible.builtin.debug:
           msg: "{{ result }}"
